@@ -1,10 +1,10 @@
 package edu.coursera.parallel;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.counting;
 
 /**
  * A simple wrapper class for various analytics methods.
@@ -36,17 +36,19 @@ public final class StudentAnalytics {
     }
 
     /**
-     * TODO compute the average age of all actively enrolled students using
-     * parallel streams. This should mirror the functionality of
-     * averageAgeOfEnrolledStudentsImperative. This method should not use any
-     * loops.
+     * Computes the average age of all actively enrolled students
      *
      * @param studentArray Student data for the class.
      * @return Average age of enrolled students
      */
     public double averageAgeOfEnrolledStudentsParallelStream(
             final Student[] studentArray) {
-        throw new UnsupportedOperationException();
+        return Stream.of(studentArray)
+                .parallel()
+                .filter(s -> s.checkIsCurrent())
+                .mapToDouble(s -> s.getAge())
+                .average()
+                .getAsDouble();
     }
 
     /**
@@ -90,17 +92,21 @@ public final class StudentAnalytics {
     }
 
     /**
-     * TODO compute the most common first name out of all students that are no
-     * longer active in the class using parallel streams. This should mirror the
-     * functionality of mostCommonFirstNameOfInactiveStudentsImperative. This
-     * method should not use any loops.
+     * Computes the most common first name out of all students that are no longer active in the class
      *
      * @param studentArray Student data for the class.
      * @return Most common first name of inactive students
      */
     public String mostCommonFirstNameOfInactiveStudentsParallelStream(
             final Student[] studentArray) {
-        throw new UnsupportedOperationException();
+        return Stream.of(studentArray)
+                .parallel()
+                .filter(s -> !s.checkIsCurrent())
+                .collect(Collectors.groupingBy(Student::getFirstName, counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .get()
+                .getKey();
     }
 
     /**
@@ -136,6 +142,9 @@ public final class StudentAnalytics {
      */
     public int countNumberOfFailedStudentsOlderThan20ParallelStream(
             final Student[] studentArray) {
-        throw new UnsupportedOperationException();
+        return (int) Stream.of(studentArray)
+                .parallel()
+                .filter(s -> s.getAge() > 20 && s.getGrade() < 65 && !s.checkIsCurrent())
+                .count();
     }
 }
